@@ -1,0 +1,17 @@
+langchain
+langchain-core
+langchain-experimental
+langchain-community
+langchain-mcp-adapters
+langgraph
+fastembed
+faiss-cpu
+pydantic
+pypdfium
+watchdog
+streamlit
+ollama
+mcp
+rich
+pydantic
+pypdfium2
