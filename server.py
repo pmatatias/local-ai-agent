@@ -18,11 +18,14 @@ from langchain_experimental.text_splitter import SemanticChunker
 from mcp.server.fastmcp import FastMCP
 from cog.config import Config
 from sqlalchemy import all_
+from cog.config import embedding_config
+from cog.remote_embedder import RemoteOllamaEmbeddings
 
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data'))
-vector_store = None
-embedder = FastEmbedEmbeddings(model_name="bge-m3:latest", cache_dir=".embeddings")
-
+embedder = RemoteOllamaEmbeddings(
+    endpoint=embedding_config.endpoint,
+    model=embedding_config.model
+)
 class DocumentChunk(BaseModel):
     document_path: str
     text: str
@@ -71,13 +74,13 @@ def list_files() -> list[File]:
     """
     List all files in the data directory with metadata.
     File information includes:
-    - path
-    - size (in bytes)
-    - modified_time (timestamp)
-    - created_time (timestamp)
-    - extension (file type)
-    - line_count (number of lines, if applicable)
-    - word_count (number of words, if applicable)
+    - path\n
+    - size (in bytes)\n
+    - modified_time (timestamp)\n
+    - created_time (timestamp)\n
+    - extension (file type)\n
+    - line_count (number of lines, if applicable)\n
+    - word_count (number of words, if applicable)\n
     This tool scans the data directory and returns a list of File objects.   
     """
     files = []

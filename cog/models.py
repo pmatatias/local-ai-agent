@@ -9,7 +9,8 @@ def create_llm(model_config: ModelConfig) -> BaseChatModel:
         return ChatOllama(
             model=model_config.name,
             temperature=model_config.temperature,
-            num_ctx=Config.OLLAMA_CONTEXT_WINDOW
+            num_ctx=Config.OLLAMA_CONTEXT_WINDOW,
+            base_url= model_config.base_url,         
         )
     else:
         raise ValueError(f"Unsupported model provider: {model_config.provider}")

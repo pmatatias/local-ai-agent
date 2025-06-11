@@ -8,12 +8,22 @@ class ModelProvider(str, Enum):
     AZURE = "azure"
     ANTHROPIC = "anthropic"
     OLLAMA = "ollama"
+@dataclass
+class EmbeddingConfig:
+    endpoint: str
+    model: str
 
+embedding_config = EmbeddingConfig(
+    endpoint="http://ollama.iotech.my.id",  # or your actual endpoint
+    model="bge-m3:latest"
+)   
 @dataclass
 class ModelConfig:
     provider: ModelProvider
     name: str
     temperature: float = 0.7
+    base_url : str = "https://ollama.iotech.my.id"  
+
 
 
 QWEN25_14B = ModelConfig(
