@@ -21,7 +21,7 @@ from sqlalchemy import all_
 from cog.config import embedding_config
 from cog.remote_embedder import RemoteOllamaEmbeddings
 
-DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data'))
+DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 embedder = RemoteOllamaEmbeddings(
     endpoint=embedding_config.endpoint,
     model=embedding_config.model

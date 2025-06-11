@@ -1,51 +1,47 @@
 import operator
-from typing import TypedDict, Annotated, Sequence
-from langchain_core.messages import BaseMessage, ToolMessage, HumanMessage
-from langchain.agents import ToolExecutor
-from langchain_community.chat_models import ChatOllama
-from langgraph.graph import StateGraph, END
-# from langgraph.prebuilt 
-from langchain_mcp_adapters.client  import MultiServerMCPClient
+import asyncio
+from typing import TypedDict, Annotated, Sequence, Dict, Any, List, Optional
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
+from langchain.agents import create_openai_tools_agent, AgentExecutor
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from cog.models import create_llm
+from cog.config import QWEN25_14B
+from cog.models import Config
+from langgraph.checkpoint.memory import MemorySaver
+from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_message_histories import ChatMessageHistory
 
-class AgentState(TypedDict):
-    messages: Annotated[Sequence[BaseMessage], operator.add]
+# System prompt that describes the agent's capabilities and tools
+SYSTEM_PROMPT = """You are a Personal Knowledge Manager assistant that helps users find, summarize, and analyze information from their local document collection.
 
-mcp_client = MultiServerMCPClient()
-tools = mcp_client.get_tools()
-tool_executor = ToolExecutor(tools)
-model = ChatOllama(model="llama3:8b")  # You must have it pulled locally
+You have access to the following tools to help users interact with their documents:
 
-model_with_tools = model.bind_tools(tools)
+1. list_files(): Lists all files in the data directory with metadata including path, size, modification time, file extension, line count, and word count.
 
-def call_model(state: AgentState):
-    response = model_with_tools.invoke(state["messages"])
-    return {"messages": [response]}
+2. read_file(path): Reads the content of a specific file and returns its text. The path should be relative to the data directory.
 
-def call_tool(state: AgentState):
-    last = state["messages"][-1]
-    tool_call = ToolInvocation(tool=last.tool_calls[0]["name"], tool_input=last.tool_calls[0]["args"])
-    result = tool_executor.invoke(tool_call)
-    return {"messages": [ToolMessage(content=str(result), tool_call_id=last.tool_calls[0]["id"])]}
+3. extract_text(file_path): Extracts text from a file in the data directory and returns its content.
 
-def should_continue(state: AgentState):
-    return "continue" if state["messages"][-1].tool_calls else "end"
+4. summarize_file(file_path): Generates a concise summary (3 sentences or less) of the specified file.
 
-workflow = StateGraph(AgentState)
-workflow.add_node("agent", call_model)
-workflow.add_node("action", call_tool)
-workflow.set_entry_point("agent")
-workflow.add_conditional_edges("agent", should_continue, {"continue": "action", "end": END})
-workflow.add_edge("action", "agent")
+5. search(query, file_paths): Searches for the query in text files within the data directory. Returns a list of document chunks with their relevancy scores.
+   - You can search all files by providing just the query
+   - You can search specific files by providing a list of file paths
 
-compiled = workflow.compile()
-chat_memory = {}
-def get_session_history(session_id: str) -> ChatMessageHistory:
-    if session_id not in chat_memory:
-        chat_memory[session_id] = ChatMessageHistory()
-    return chat_memory[session_id]
+When users ask questions about their documents, use these tools to help them find relevant information. Always explain which tools you're using and why.
 
-agent_runnable = RunnableWithMessageHistory(
-    compiled, get_session_history, input_messages_key="messages", history_messages_key="messages"
-)
+For example:
+- If a user asks "What files do I have?", use list_files() to show all available files
+- If a user asks "What's in my profile.md?", use read_file("profile.md") to display the content
+- If a user asks "Summarize my profile document", use summarize_file("profile.md")
+- If a user asks "Find information about Python", use search("Python") to search all documents
+- If a user asks "Find Python in my code files", use search("Python", ["file1.py", "file2.py"])
+
+Always provide helpful and accurate information based on the document content. If you can't find information in the documents, let the user know.
+"""
+
+model = create_llm(Config.MODEL)
+
+memory = MemorySaver()
+
