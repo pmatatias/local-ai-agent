@@ -1,9 +1,9 @@
 import os
 import re
 import textwrap
+import time
 from venv import create
-from altair import Config
-from cog.config import QWEN25_14B
+from cog.config import QWEN25_14B, Config
 from cog.models import create_llm
 from langchain import text_splitter
 import numpy as np
@@ -20,8 +20,12 @@ from cog.config import Config
 from sqlalchemy import all_
 from cog.config import embedding_config
 from cog.remote_embedder import RemoteOllamaEmbeddings
+from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse
+import asyncio
 
-DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
+
+# Use the Config.Path.DATA_DIR from cog.config instead of defining a separate DATA_DIR
 embedder = RemoteOllamaEmbeddings(
     endpoint=embedding_config.endpoint,
     model=embedding_config.model
@@ -58,9 +62,21 @@ summary_model = create_llm(QWEN25_14B)
 
 mcp = FastMCP()
 
+app = FastAPI()
+
+@app.get("/events")
+async def sse_endpoint(request: Request):
+    async def event_generator():
+        while True:
+            if await request.is_disconnected():
+                break
+            yield f"data: Hello at {time.time()}\n\n"
+            await asyncio.sleep(1)
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
 def _build_vector_store():
     loader = DirectoryLoader(
-        DATA_DIR, glob="**/*.{txt,md,py,json}", loader_cls=TextLoader,
+        str(Config.Path.DATA_DIR), glob="**/*.{txt,md,py,json}", loader_cls=TextLoader,
         loader_kwargs={"encoding": "utf-8"}
     )
     docs = loader.load()
@@ -84,10 +100,10 @@ def list_files() -> list[File]:
     This tool scans the data directory and returns a list of File objects.   
     """
     files = []
-    for root, _, fnames in os.walk(DATA_DIR):
+    for root, _, fnames in os.walk(Config.Path.DATA_DIR):
         for fname in fnames:
             fpath = os.path.join(root, fname)
-            relpath = os.path.relpath(fpath, DATA_DIR)
+            relpath = os.path.relpath(fpath, Config.Path.DATA_DIR)
             try:
                 stat = os.stat(fpath)
                 with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
@@ -110,6 +126,14 @@ def extract_text (file_path:str)-> str:
 
 @mcp.tool()
 def summarize_file(file_path:str)-> str:
+    """
+    Generate a concise summary of the specified file.
+    This tool reads the content of a file and generates a summary in 3 sentences or less.
+    """
+    if not (Config.Path.DATA_DIR / file_path).exists():
+        return f"File not found: {file_path}"
+    
+    
     file_content = (Config.Path.DATA_DIR/ file_path).read_text()
     response = summary_model.invoke(SUMMARIZE_PROMPT.format(text=file_content))
     content = response.content
@@ -121,8 +145,8 @@ def summarize_file(file_path:str)-> str:
 
 @mcp.tool()
 def read_file(path: str = Field(...)) -> str:
-    full_path = os.path.abspath(os.path.join(DATA_DIR, path))
-    if not full_path.startswith(DATA_DIR):
+    full_path = os.path.abspath(os.path.join(Config.Path.DATA_DIR, path))
+    if not full_path.startswith(str(Config.Path.DATA_DIR)):
         return "Security alert: Invalid path."
     try:
         with open(full_path, "r", encoding="utf-8") as f:
