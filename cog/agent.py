@@ -70,16 +70,24 @@ def get_file_metadata(file_path):
         "word_count": word_count
     }
 
-def list_files_tool(*args):
+def list_files_tool(query: str = ""):
     """Lists all files in the data directory with metadata."""
+    print(f"Listing files with query: '{query}'")
     data_dir = Config.Path.DATA_DIR
     files = []
     
     for file_path in data_dir.glob('**/*'):
         if file_path.is_file():
-            files.append(get_file_metadata(file_path))
+            # If query is provided, filter files that match the query
+            if not query or query.lower() in str(file_path).lower():
+                files.append(get_file_metadata(file_path))
     
-    return json.dumps(files, indent=2)
+    # Add a message to indicate this is just a part of the overall execution
+    print(f"Found {len(files)} files matching the query")
+    result = json.dumps(files, indent=2)
+    
+    # Return the result with a clear indication this is just a list of files
+    return result
 
 def read_file_tool(path: str):
     """Reads the content of a specific file and returns its text."""
@@ -100,14 +108,29 @@ def summarize_file_tool(file_path: str):
     """Generates a concise summary of the specified file."""
     content = read_file_tool(file_path)
     
+    # If the file wasn't found or had an error, return the error message
+    if content.startswith("Error reading file:"):
+        return content
+    
+    # Print debug info to help track the workflow
+    print(f"Summarizing file: {file_path}")
+    
     # Use the model to generate a summary
     messages = [
         SystemMessage(content="You are a summarization assistant. Create a concise summary (3 sentences or less) of the following text:"),
         HumanMessage(content=content)
     ]
     
-    summary = model.invoke(messages).content
-    return summary
+    try:
+        summary = model.invoke(messages).content
+        # Add a marker to indicate this is the end of summarization for this file
+        # but not the end of the entire agent execution
+        result = f"Summary of {file_path}: {summary}"
+        print(f"Successfully summarized {file_path}")
+        return result
+    except Exception as e:
+        print(f"Error summarizing {file_path}: {e}")
+        return f"Error summarizing {file_path}: {e}"
 
 def search_tool(query: str, file_paths: Optional[List[str]] = None):
     """Searches for the query in text files within the data directory."""
@@ -226,13 +249,43 @@ class AgentRunnableWithStreaming:
             "chat_history": history.messages
         }
         
+        # For tracking complete response
+        final_output = ""
+        last_chunk = None
+        
         # Stream the execution
         for chunk in self.agent_executor.stream(inputs):
+            last_chunk = chunk
             yield {"messages": [chunk]}
             
+            # Track tool executions for debugging
+            if isinstance(chunk, dict) and "tool" in chunk:
+                print(f"Tool execution: {chunk.get('tool')}, Arguments: {chunk.get('tool_input')}")
+                
+                # If this is a summarize_file or list_files tool call, track it
+                if chunk.get('tool') in ['summarize_file', 'list_files']:
+                    # We'll continue executing even if it seems like the chain might be ending
+                    print(f"Executing important tool: {chunk.get('tool')}")
+            
+            # Accumulate output if available
+            if isinstance(chunk, dict) and "output" in chunk:
+                final_output += str(chunk["output"])
+            elif hasattr(chunk, "output") and getattr(chunk, "output"):
+                final_output += str(getattr(chunk, "output"))
+        
         # After execution completes, if there's an output, add it to history
-        if hasattr(chunk, "output"):
-            history.add_ai_message(chunk.output)
+        if last_chunk is not None:
+            if isinstance(last_chunk, dict) and "output" in last_chunk:
+                # Use the accumulated output instead of just the last chunk
+                history.add_ai_message(final_output or str(last_chunk["output"]))
+            elif hasattr(last_chunk, "output") and getattr(last_chunk, "output"):
+                history.add_ai_message(final_output or str(getattr(last_chunk, "output")))
+            elif final_output:
+                # If we've accumulated output but it's not in the last chunk
+                history.add_ai_message(final_output)
+            else:
+                # As a fallback, just convert the last chunk to a string
+                history.add_ai_message(str(last_chunk))
 
 # Create the agent_runnable with streaming capability
 agent_runnable = AgentRunnableWithStreaming(agent_executor)

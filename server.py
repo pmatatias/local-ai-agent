@@ -105,6 +105,9 @@ def list_files(query: str = "") -> list[File]:
         for fname in fnames:
             fpath = os.path.join(root, fname)
             relpath = os.path.relpath(fpath, Config.Path.DATA_DIR)
+            # If query is provided, filter files that match the query
+            if query and query.lower() not in relpath.lower():
+                continue
             try:
                 stat = os.stat(fpath)
                 with open(fpath, "r", encoding="utf-8", errors="ignore") as f:

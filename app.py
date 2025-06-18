@@ -48,7 +48,13 @@ if prompt := st.chat_input("Ask about your documents..."):
                             placeholder.markdown(full_response + "▌")
                         elif "tool" in last:
                             # Handle tool execution
-                            placeholder.markdown(f"🔍 Searching your documents with `{last.get('tool', 'tool')}`...")
+                            tool_name = last.get('tool', 'tool')
+                            placeholder.markdown(f"🔍 Searching your documents with `{tool_name}`...")
+                            # Log additional info for debugging
+                            print(f"Tool execution: {tool_name}, Arguments: {last.get('tool_input', 'unknown')}")
+                            # If we've reached the end of this part of the chain, avoid early termination
+                            if "end" in str(last).lower() or "finish" in str(last).lower():
+                                print("Detected possible chain completion, continuing execution")
                     else:
                         # Try to get content from the message
                         try:
@@ -56,15 +62,16 @@ if prompt := st.chat_input("Ask about your documents..."):
                             if content and isinstance(content, str):
                                 full_response += content
                                 placeholder.markdown(full_response + "▌")
-                        except:
+                        except Exception as e:
+                            print(f"Error getting content: {e}")
                             # If anything fails, try to convert to string
                             try:
                                 text = str(last)
                                 if text and text != "None":
                                     full_response += text
                                     placeholder.markdown(full_response + "▌")
-                            except:
-                                pass
+                            except Exception as e:
+                                print(f"Error converting to string: {e}")
             
             # Display final response
             placeholder.markdown(full_response)
