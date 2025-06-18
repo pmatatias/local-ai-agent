@@ -86,7 +86,7 @@ def _build_vector_store():
     return FAISS.from_documents(chunks, embeddings)
 
 @mcp.tool()
-def list_files() -> list[File]:
+def list_files(query: str = "") -> list[File]:
     """
     List all files in the data directory with metadata.
     File information includes:
@@ -99,6 +99,7 @@ def list_files() -> list[File]:
     - word_count (number of words, if applicable)\n
     This tool scans the data directory and returns a list of File objects.   
     """
+    print(f"list_files tool called with query: '{query}'")
     files = []
     for root, _, fnames in os.walk(Config.Path.DATA_DIR):
         for fname in fnames:
@@ -243,4 +244,9 @@ def search(query: str , file_paths: list[str]=[]) -> list[DocumentChunk]:
 
 if __name__ == "__main__":
     print("Running MCP server...")
+    print(f"Using data directory: {Config.Path.DATA_DIR}")
+    print("Adding debug logging...")
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    print("Starting server...")
     mcp.run()
