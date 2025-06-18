@@ -70,7 +70,7 @@ def get_file_metadata(file_path):
         "word_count": word_count
     }
 
-def list_files_tool():
+def list_files_tool(*args):
     """Lists all files in the data directory with metadata."""
     data_dir = Config.Path.DATA_DIR
     files = []
