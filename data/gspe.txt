@@ -1,0 +1,58 @@
+COMPANY OVERVIEW – GSPE (PT Graha Sumber Prima Elektronik)
+
+Established: 1996
+Facilities: 20,000m² factory in Tangerang Selatan
+Certifications: ISO 9001:2015, ISO 45001:2018, TKDN (PDU, Containment, LVMDP, MCC)
+Core Competency: Power systems, electrical panels, data center infrastructure, and enclosures
+
+SERVICES OFFERED
+- Consultation & Design (Data center, panel, rack)
+- Engineering & Fabrication (Metal works, assembly, wiring)
+- Installation & Commissioning (On-site installation and testing)
+- Project Management (ISO-compliant project handling)
+- Repair Center (Upgrades, rectifier and panel repair)
+- 24/7 Customer Response Center (Monitoring rectifier & battery)
+- Factory Acceptance Test (FAT) (Complete pre-delivery testing)
+- Logistics & Quality Assurance (Delivery, inspection, compliance)
+
+PRODUCT CATEGORIES
+
+1. POWER DISTRIBUTION SYSTEMS
+- LVMDP Panel
+- Power Distribution Unit (PDU)
+- Capacitor Bank
+- Power CPGS
+- ATS-AMF Panel
+- Wall-mounted Outdoor Panel
+
+2. DC POWER SYSTEMS
+- Rectifier R4860F / R4840F
+- 6U Power Subrack (27kW total capacity)
+- PC100 Power Controller (TCP/IP, SNMP monitoring)
+
+3. CONTROL SYSTEMS
+- Relay Control Protection (RCP Series)
+- PC100 Power Controller
+
+4. MOTOR CONTROL CENTERS
+- Power MCC (Low Voltage Motor Control Center)
+
+5. RACKS & ENCLOSURES
+- Server Rack (42U / 45U, PCI-DSS, TKDN)
+- Wallmount Rack, Open Rack, Colocation Rack
+- Indoor & Outdoor Marshalling Kiosk
+- Cabinet Systems (Free-standing, pole-mount, wall-mount)
+
+6. DATA CENTER CONTAINMENT
+- Hot/Cold Aisle Containment
+- Modular, fire-safe, RFID/fingerprint access
+- 55% TKDN certified
+
+7. TDK-LAMBDA POWER PRODUCTS (Authorized Distributor)
+- AC-DC Power Supplies: Available in unit types, PC board types, power module types, on-board types, and DIN rail mount types, ranging from several watts to over 2 kW.
+- DC-DC Converters: High-reliability converters with isolated and non-isolated types, suitable for various applications.
+- High Voltage Power Supplies: Programmable capacitor charging and AC-DC power supplies, including the ALE series.
+- Programmable Electronic Loads: SFL series featuring fast response and linear current change from zero volts, with load power ratings of 300 W / 1 kW.
+- Bidirectional Converters: EZA series capable of both step-down and step-up operations in a single unit.
+- Power Line EMC Filters: Designed to suppress electromagnetic interference in power lines.
+- Accessories: Includes expansion modules, evaluation boards, heatsinks, cables and harnesses, power supply mounting plates, and compatible brackets.
