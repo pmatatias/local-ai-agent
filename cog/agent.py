@@ -72,6 +72,12 @@ def get_file_metadata(file_path):
 
 def list_files_tool(query: str = ""):
     """Lists all files in the data directory with metadata."""
+    # Handle case where query is passed as a list
+    if isinstance(query, list) and len(query) > 0:
+        query = query[0]
+    elif isinstance(query, list):
+        query = ""
+        
     print(f"Listing files with query: '{query}'")
     data_dir = Config.Path.DATA_DIR
     files = []
@@ -91,6 +97,10 @@ def list_files_tool(query: str = ""):
 
 def read_file_tool(path: str):
     """Reads the content of a specific file and returns its text."""
+    # Handle case where path is passed as a list
+    if isinstance(path, list) and len(path) > 0:
+        path = path[0]
+        
     file_path = Config.Path.DATA_DIR / path
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -100,12 +110,20 @@ def read_file_tool(path: str):
 
 def extract_text_tool(file_path: str):
     """Extracts text from a file in the data directory and returns its content."""
+    # Handle case where file_path is passed as a list
+    if isinstance(file_path, list) and len(file_path) > 0:
+        file_path = file_path[0]
+    
     # For now, this is the same as read_file since we're only dealing with text files
     # In a real implementation, this would handle different file types (PDF, DOCX, etc.)
     return read_file_tool(file_path)
 
 def summarize_file_tool(file_path: str):
     """Generates a concise summary of the specified file."""
+    # Handle case where file_path is passed as a list
+    if isinstance(file_path, list) and len(file_path) > 0:
+        file_path = file_path[0]
+    
     content = read_file_tool(file_path)
     
     # If the file wasn't found or had an error, return the error message
@@ -134,6 +152,10 @@ def summarize_file_tool(file_path: str):
 
 def search_tool(query: str, file_paths: Optional[List[str]] = None):
     """Searches for the query in text files within the data directory."""
+    # Handle case where query is passed as a list
+    if isinstance(query, list) and len(query) > 0:
+        query = query[0]
+    
     data_dir = Config.Path.DATA_DIR
     results = []
     
